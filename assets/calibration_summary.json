@@ -1,0 +1,97 @@
+{
+ "camera": "Canon EOS R6 V",
+ "units": "Haar-HH truncated-RMS sigma in normalised full-range Log code values",
+ "note": "aggregates only; no paths, places or dates",
+ "profiles": {
+  "canon-log2": {
+   "clips": 160,
+   "buckets": [
+    {
+     "iso_bucket": "<=1000",
+     "n": 75,
+     "iso_median": 800,
+     "p10": 0.0005,
+     "p50": 0.00076,
+     "p90": 0.00105
+    },
+    {
+     "iso_bucket": "1000-2600",
+     "n": 55,
+     "iso_median": 1234,
+     "p10": 0.00054,
+     "p50": 0.00081,
+     "p90": 0.00113
+    },
+    {
+     "iso_bucket": "2600-5500",
+     "n": 11,
+     "iso_median": 3200,
+     "p10": 0.00084,
+     "p50": 0.00103,
+     "p90": 0.00134
+    },
+    {
+     "iso_bucket": "5500-9000",
+     "n": 5,
+     "iso_median": 6400,
+     "p10": 0.00092,
+     "p50": 0.00115,
+     "p90": 0.00148
+    },
+    {
+     "iso_bucket": ">9000",
+     "n": 14,
+     "iso_median": 51200,
+     "p10": 0.00125,
+     "p50": 0.00142,
+     "p90": 0.0021
+    }
+   ]
+  },
+  "canon-log3": {
+   "clips": 196,
+   "buckets": [
+    {
+     "iso_bucket": "<=1000",
+     "n": 91,
+     "iso_median": 800,
+     "p10": 0.00063,
+     "p50": 0.00082,
+     "p90": 0.0012
+    },
+    {
+     "iso_bucket": "1000-2600",
+     "n": 66,
+     "iso_median": 1234,
+     "p10": 0.00064,
+     "p50": 0.00082,
+     "p90": 0.00113
+    },
+    {
+     "iso_bucket": "2600-5500",
+     "n": 20,
+     "iso_median": 4150,
+     "p10": 0.00066,
+     "p50": 0.0009,
+     "p90": 0.00114
+    },
+    {
+     "iso_bucket": "5500-9000",
+     "n": 15,
+     "iso_median": 8300,
+     "p10": 0.00087,
+     "p50": 0.001,
+     "p90": 0.00116
+    },
+    {
+     "iso_bucket": ">9000",
+     "n": 4,
+     "iso_median": 30535,
+     "p10": 0.00095,
+     "p50": 0.00107,
+     "p90": 0.00111
+    }
+   ]
+  }
+ }
+}

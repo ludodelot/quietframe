@@ -28,9 +28,11 @@ class EndToEnd(unittest.TestCase):
     def cli(self, *args):
         return subprocess.run([sys.executable, "-m", "quietframe", *args], cwd=ROOT, capture_output=True, text=True)
 
-    def test_filter_prints_denoise_before_lut(self):
+    def test_filter_defaults_to_denoise_after_lut_and_can_be_flipped(self):
         r = self.cli("filter", self.src, "--lut", "x.cube", "--mode", "measure")
         self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertLess(r.stdout.index("lut3d"), r.stdout.index("hqdn3d"))
+        r = self.cli("filter", self.src, "--lut", "x.cube", "--mode", "measure", "--stage", "before")
         self.assertLess(r.stdout.index("hqdn3d"), r.stdout.index("lut3d"))
 
     def test_run_lowers_measured_noise(self):

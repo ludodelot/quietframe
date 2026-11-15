@@ -24,7 +24,9 @@ def main(argv=None) -> int:
         s.add_argument("--preset", choices=sorted(PRESETS), default="normal")
         s.add_argument("--log-profile", choices=["auto", *sorted(__import__("quietframe.core", fromlist=["ANCHORS"]).ANCHORS)],
                        default="auto", help="Log curve of the clip; auto reads the .CPF next to it (never guessed)")
-        s.add_argument("--lut", help="optional .cube applied right after the denoise")
+        s.add_argument("--lut", help="optional .cube Log -> Rec.709 LUT, applied before the denoise (stage after) or after it (stage before)")
+        s.add_argument("--stage", choices=["after", "before"], default="after",
+                       help="denoise after the LUT (default, keeps more detail at equal noise) or before it")
         s.add_argument("--range", choices=["full", "auto"], default="full",
                        help="full = treat source as full range (Canon Log R6 V); auto = leave flags alone")
         if name == "run":
@@ -64,7 +66,9 @@ def main(argv=None) -> int:
         iso = a.iso if a.iso is not None else read_iso(a.input)
         plan = plan_for_iso(iso, a.preset)
         note = f"ISO {iso}" if iso else "ISO unknown (mid-strength fallback)"
-    vf = build_filter(plan, a.lut, a.range == "full")
+    vf = build_filter(plan, a.lut, a.range == "full", a.stage)
+    if not a.lut:
+        print("# no --lut: denoising the frames as given (strength is calibrated for display-referred frames, after the LUT)", file=sys.stderr)
     print(f"# {note} -> {plan.hqdn3d}" + ("" if plan.tested else "  [untested tier]"), file=sys.stderr)
     if a.cmd == "filter":
         print(vf)

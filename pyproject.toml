@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "quietframe"
 dynamic = ["version"]
-description = "Noise-adaptive denoising for Log camera footage, applied before the Log to Rec.709 transform."
+description = "Noise-adaptive denoising for Log camera footage, calibrated per Log profile and applied after the Log to Rec.709 LUT."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }

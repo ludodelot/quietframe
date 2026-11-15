@@ -74,16 +74,30 @@ def plan_for_sigma(sigma: float, preset: str = "normal", profile: str | None = N
     return Plan(iso=None, params=p, tested=known and preset == "normal" and sigma <= hi * 1.15)
 
 
-def build_filter(plan: Plan, lut: str | None = None, full_range: bool = True) -> str:
-    """Filter chain: [setrange] -> denoise -> [lut3d]. Denoise always precedes the LUT."""
+STAGES = ("after", "before")
+
+
+def build_filter(plan: Plan, lut: str | None = None, full_range: bool = True, stage: str = "after") -> str:
+    """Filter chain around the Log -> Rec.709 LUT.
+
+    stage="after" (default): [setrange] -> lut3d -> denoise. In equal-noise tests on real clips this kept as much or
+    more detail than denoising the Log frames first (see README). stage="before": [setrange] -> denoise -> lut3d.
+    Without a LUT the denoise is applied to whatever frames are fed in.
+    """
+    if stage not in STAGES:
+        raise ValueError(f"stage must be one of {STAGES}")
     chain = []
     if full_range:
         chain.append("setrange=full")
-    chain.append(plan.hqdn3d)
+    lut_filter = None
     if lut:
         if any(c in lut for c in "'\\:,;[]"):
             raise ValueError("LUT path contains characters unsafe for an ffmpeg filter; rename or move it")
-        chain.append(f"lut3d=file={lut}:interp=tetrahedral")
+        lut_filter = f"lut3d=file={lut}:interp=tetrahedral"
+    if stage == "before":
+        chain += [plan.hqdn3d] + ([lut_filter] if lut_filter else [])
+    else:
+        chain += ([lut_filter] if lut_filter else []) + [plan.hqdn3d]
     return ",".join(chain)
 
 

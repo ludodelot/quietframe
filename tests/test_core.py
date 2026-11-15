@@ -25,10 +25,18 @@ class CoreTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             plan_for_iso(800, "nuclear")
 
-    def test_denoise_precedes_lut(self):
+    def test_default_stage_denoises_after_the_lut(self):
         vf = build_filter(plan_for_iso(3200), lut="a.cube")
-        self.assertLess(vf.index("hqdn3d"), vf.index("lut3d"))
+        self.assertLess(vf.index("lut3d"), vf.index("hqdn3d"))
         self.assertTrue(vf.startswith("setrange=full"))
+
+    def test_before_stage_denoises_before_the_lut(self):
+        vf = build_filter(plan_for_iso(3200), lut="a.cube", stage="before")
+        self.assertLess(vf.index("hqdn3d"), vf.index("lut3d"))
+
+    def test_bad_stage_rejected(self):
+        with self.assertRaises(ValueError):
+            build_filter(plan_for_iso(3200), stage="sideways")
 
     def test_unsafe_lut_path_rejected(self):
         with self.assertRaises(ValueError):

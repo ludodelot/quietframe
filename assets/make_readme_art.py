@@ -89,7 +89,7 @@ def hero():
         f'<path d="M{fx} {fy + 262} Q{fx + 160} {fy + 210} {fx + 320} {fy + 258} T{fx + fw} {fy + 250} V{fy + fh} H{fx}z" fill="var(--accent)" opacity=".5"/>'
     )
     chips = ""
-    labels = [("LOG", False), ("DENOISE", True), ("LUT", False), ("REC.709", False)]
+    labels = [("LOG", False), ("LUT", False), ("DENOISE", True), ("REC.709", False)]
     cx = 48
     for i, (lab, hot) in enumerate(labels):
         w = len(lab) * 11 + 36
@@ -105,52 +105,61 @@ def hero():
         badges += f'<rect x="{bx}" y="440" width="{w}" height="28" rx="14" class="panel"/>' + t(bx + w / 2, 459, lab, 12, "dim", "middle")
         bx += w + 12
     body = (
-        t(48, 62, "● v0.2  ·  CLASSICAL  ·  OPEN SOURCE", 13, "acc pulse")
+        t(48, 62, "● v1.0  ·  CLASSICAL  ·  OPEN SOURCE", 13, "acc pulse")
         + t(48, 168, "quietframe", 84, "b", extra='letter-spacing="-3"')
         + '<rect x="48" y="184" width="300" height="5" rx="2" fill="var(--accent)"/>'
-        + t(48, 232, "ISO-adaptive denoising for Log camera footage.", 24)
-        + t(48, 264, "Denoise before the Log → Rec.709 transform. Strength measured per clip.", 16, "dim")
+        + t(48, 232, "Noise-adaptive denoising for Log camera footage.", 24)
+        + t(48, 264, "Denoise after the Log → Rec.709 LUT. Strength measured per clip.", 16, "dim")
         + t(48, 292, "Canon Log 2 · Canon Log 3 · ffmpeg · Python · Claude Code skill", 14, "acc")
         + chips + badges
         + scene + "".join(dots)
         + f'<g style="--w:{fw}px"><g class="sweep"><rect x="{fx}" y="{fy}" width="2" height="{fh}" fill="var(--accent)"/></g></g>'
         + f'<rect x="{fx}" y="{fy}" width="{fw}" height="{fh}" fill="none" stroke="var(--line)"/>'
-        + t(fx, fy + fh + 30, "ISO 6400 · Canon Log 3 · 4K 10-bit 4:2:2", 13, "dim")
-        + t(fx + fw, fy + fh + 30, "noise 100% → 33%", 13, "ok b", "end")
-        + t(fx + fw, fy + fh + 52, "detail kept 93%", 13, "dim", "end")
+        + t(fx, fy + fh + 30, "ISO 6400 · Canon Log 2 · 4K 10-bit 4:2:2", 13, "dim")
+        + t(fx + fw, fy + fh + 30, "noise 100% → 44%", 13, "ok b", "end")
+        + t(fx + fw, fy + fh + 52, "detail kept 96%", 13, "dim", "end")
     )
-    svg("hero.svg", W, H, "quietframe: ISO-adaptive denoising for Log camera footage",
-        "Animated frame whose film grain fades away as a scan line sweeps across it, above the pipeline Log, denoise, LUT, Rec.709. Measured on a Canon EOS R6 V at ISO 6400: residual noise 33 percent, detail kept 93 percent.",
+    svg("hero.svg", W, H, "quietframe: noise-adaptive denoising for Log camera footage",
+        "Animated frame whose film grain fades away as a scan line sweeps across it, above the pipeline Log, LUT, denoise, Rec.709. Measured on a Canon EOS R6 V in Canon Log 2 at ISO 6400: residual noise 44 percent, detail kept 96 percent.",
         body)
 
 
-# ───────────────────────── 2. WHY BEFORE THE LUT ─────────────────────────
+# ───────────────────────── 2. WHERE IN THE CHAIN ─────────────────────────
 def why():
+    """Detail kept vs noise left for hqdn3d before vs after the LUT, 3 real clips, strengths 1.5 / 2 / 3 / 4.
+    Numbers: equal-strength sweep measured with the correct Log 2 / Log 3 LUT (README, 'Where to denoise')."""
     W, H = 1600, 560
-    rows = [
-        ("LUT only", "no denoise", 100, 100, False),
-        ("hqdn3d AFTER the LUT", "denoise in Rec.709", 50, 96, False),
-        ("hqdn3d BEFORE the LUT", "hqdn3d=3:3:6:6 in Log", 33, 93, True),
+    panels = [
+        ("Canon Log 2 · ISO 6400", [(63, 97), (54, 96), (46, 94), (43, 92)], [(70, 98), (59, 97), (44, 96), (36, 94)]),
+        ("Canon Log 2 · ISO 51200", [(78, 99), (68, 98), (55, 95), (46, 93)], [(87, 99), (79, 99), (65, 98), (55, 96)]),
+        ("Canon Log 3 · ISO 8299", [(62, 96), (55, 94), (49, 91), (45, 87)], [(76, 99), (68, 98), (56, 96), (47, 94)]),
     ]
-    bx, bw = 560, 420
-    body = heading("WHY THE ORDER MATTERS", "Denoise in Log, before the LUT",
-                   "The display transform amplifies shadow noise. Remove it first, at the same cost in detail.")
-    body += t(bx, 168, "RESIDUAL NOISE  (lower is better)", 12, "dim") + t(bx + bw + 160, 168, "DETAIL KEPT  (higher is better)", 12, "dim")
-    for i, (a, b, noise, detail, hot) in enumerate(rows):
-        y = 196 + i * 92
-        body += f'<rect x="48" y="{y}" width="1504" height="76" rx="8" class="{"hot" if hot else "panel"}"/>'
-        body += t(72, y + 34, a, 18, "b acc" if hot else "b") + t(72, y + 58, b, 13, "dim")
-        body += f'<rect x="{bx}" y="{y + 26}" width="{bw}" height="24" rx="4" fill="var(--line)" opacity=".5"/>'
-        body += f'<rect x="{bx}" y="{y + 26}" width="{bw * noise / 100:.0f}" height="24" rx="4" fill="{"var(--ok)" if hot else "var(--dim)"}"/>'
-        body += t(bx + bw + 14, y + 45, f"{noise}%", 18, "b ok" if hot else "b")
-        dx = bx + bw + 160
-        body += f'<rect x="{dx}" y="{y + 26}" width="{bw * 0.6:.0f}" height="24" rx="4" fill="var(--line)" opacity=".5"/>'
-        body += f'<rect x="{dx}" y="{y + 26}" width="{bw * 0.6 * detail / 100:.0f}" height="24" rx="4" fill="var(--accent)" opacity="{1 if hot else .55}"/>'
-        body += t(dx + bw * 0.6 + 14, y + 45, f"{detail}%", 18, "b")
-    body += t(48, 500, "Canon EOS R6 V · Canon Log 3 · 4K 10-bit 4:2:2 · ISO 6400 · flat-region noise estimate on one clip per ISO.", 13, "dim")
-    body += t(48, 526, "Same detail, about a third of the noise left. That is the whole idea.", 14, "acc")
-    svg("why-before-lut.svg", W, H, "Why denoise before the LUT: 33% residual noise versus 50% after",
-        "Bar chart for ISO 6400 on a Canon EOS R6 V: LUT only keeps 100 percent noise, hqdn3d after the LUT leaves 50 percent noise and keeps 96 percent detail, hqdn3d before the LUT leaves 33 percent noise and keeps 93 percent detail.",
+    body = heading("WHERE IN THE CHAIN", "Denoise after the LUT: more detail at the same noise",
+                   "Each line is a strength sweep (1.5, 2, 3, 4). Further right = less noise left. Higher = more detail kept.")
+    pw, ph, gap, x0, y0 = 440, 250, 72, 80, 190
+    X = lambda n, ox: ox + (100 - n) / 70 * pw       # noise left 100% .. 30%
+    Y = lambda d: y0 + ph - (d - 85) / 15 * ph        # detail 85 .. 100
+    for k, (title, before, after) in enumerate(panels):
+        ox = x0 + k * (pw + gap)
+        body += t(ox, y0 - 18, title, 15, "b")
+        for d in (88, 92, 96, 100):
+            body += f'<line x1="{ox}" y1="{Y(d):.0f}" x2="{ox + pw}" y2="{Y(d):.0f}" stroke="var(--line)" stroke-dasharray="3 6"/>'
+            if k == 0:
+                body += t(ox - 10, Y(d) + 4, f"{d}%", 11, "dim", "end")
+        for n in (100, 80, 60, 40):
+            body += t(X(n, ox), y0 + ph + 22, f"{n}%", 11, "dim", "middle")
+        body += t(ox + pw / 2, y0 + ph + 44, "noise left", 11, "dim", "middle")
+        for pts, color, dash in ((before, "var(--dim)", "6 5"), (after, "var(--accent)", "")):
+            line = " ".join(f"{X(n, ox):.0f},{Y(d):.0f}" for n, d in pts)
+            body += f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="3"' + (f' stroke-dasharray="{dash}"' if dash else "") + "/>"
+            for n, d in pts:
+                body += f'<circle cx="{X(n, ox):.0f}" cy="{Y(d):.0f}" r="4.5" fill="var(--bg)" stroke="{color}" stroke-width="2.5"/>'
+    lx = 80
+    body += f'<line x1="{lx}" y1="500" x2="{lx + 40}" y2="500" stroke="var(--accent)" stroke-width="3"/>' + t(lx + 52, 505, "hqdn3d AFTER the LUT (default)", 13, "b acc")
+    body += f'<line x1="{lx + 330}" y1="500" x2="{lx + 370}" y2="500" stroke="var(--dim)" stroke-width="3" stroke-dasharray="6 5"/>' + t(lx + 382, 505, "BEFORE the LUT (--stage before)", 13, "dim")
+    body += t(48, 536, "Canon EOS R6 V · 4K 10-bit · measured with the correct LUT for each Log curve · one clip per panel · 4 frames per point.", 12, "dim")
+    svg("stage-comparison.svg", W, H, "Denoise after the LUT keeps more detail at the same noise",
+        "Three panels, one clip each (Canon Log 2 ISO 6400, Canon Log 2 ISO 51200, Canon Log 3 ISO 8299), plotting detail kept against noise left for hqdn3d before and after the LUT. At the same residual noise, denoising after the LUT keeps the same or more detail in all three, most clearly in Canon Log 3.",
         body)
 
 
@@ -161,7 +170,7 @@ def how():
         ("01", "READ", "clip + .CPF", "Log profile from the sidecar,\nnever guessed"),
         ("02", "MEASURE", "5 full frames", "median of truncated-RMS\nHaar diagonal band → σ"),
         ("03", "STRENGTH", "σ → hqdn3d", "per-profile anchors,\nspatial clamped to 4.0"),
-        ("04", "FILTER", "before the LUT", "hqdn3d chain, optional\n--lut my.cube"),
+        ("04", "FILTER", "after the LUT", "your LUT first, then the\nhqdn3d chain (--lut my.cube)"),
         ("05", "RENDER", "new file", "never overwrites input;\n--force to replace output"),
     ]
     cw, gap, x0, y = 276, 31, 48, 160
@@ -188,47 +197,48 @@ def how():
     body += t(72, 512, "COMMANDS", 12, "dim")
     cmds = [
         "python -m quietframe filter clip.mp4                 # measure noise, print the -vf chain",
-        "python -m quietframe filter clip.mp4 --lut my.cube   # denoise, then your LUT",
+        "python -m quietframe filter clip.mp4 --lut my.cube   # your LUT, then denoise",
         "python -m quietframe run clip.mp4 -o clean.mov --preset strong",
     ]
     for k, c in enumerate(cmds):
         body += t(72, 538 + k * 20, c, 13, "acc" if k == 2 else "")
     svg("how-it-works.svg", W, H, "How quietframe works: read, measure, strength, filter, render",
-        "Five-step flow: read the Log profile from the .CPF sidecar, measure noise on five frames, map the noise to an hqdn3d strength clamped to 4.0, filter before the LUT, render to a new file. Without numpy an ISO table is used instead.",
+        "Five-step flow: read the Log profile from the .CPF sidecar, measure noise on five frames, map the noise to an hqdn3d strength clamped to 4.0, apply your LUT and then the filter, render to a new file. Without numpy an ISO table is used instead.",
         body)
 
 
 # ───────────────────────── 4. NOISE VS ISO ─────────────────────────
 def noise():
-    W, H = 1600, 560
-    # typical sigma by ISO (README): ~0.0008 up to ISO 2000, 0.0014 at 3200-6400, 0.002 at 51200
-    pts = [(800, 0.0008), (2000, 0.0008), (3200, 0.0014), (6400, 0.0014), (51200, 0.002)]
-    px, py, pw, ph = 130, 170, 860, 300
+    """Noise vs ISO from the calibration survey (assets/calibration_summary.json: aggregates, no paths)."""
+    import json
     import math
+    from pathlib import Path
+    data = json.loads((Path(__file__).with_name("calibration_summary.json")).read_text())["profiles"]
+    n_clips = sum(p["clips"] for p in data.values())
+    W, H = 1600, 560
+    px, py, pw, ph = 130, 170, 860, 300
     lo, hi = math.log(800), math.log(51200)
     X = lambda iso: px + (math.log(iso) - lo) / (hi - lo) * pw
-    Y = lambda s: py + ph - (s / 0.0024) * ph
-    body = heading("MEASURE, DON'T TRUST ISO", "Noise rises with ISO, but varies per scene",
-                   "21 clips, ISO 800 to 51200, Log domain. Two ISO 800 clips measured 0.0005 and 0.0011.")
-    for s in (0.0005, 0.001, 0.0015, 0.002):
-        body += f'<line x1="{px}" y1="{Y(s):.0f}" x2="{px + pw}" y2="{Y(s):.0f}" stroke="var(--line)" stroke-dasharray="3 6"/>' + t(px - 12, Y(s) + 4, f"{s:.4f}", 11, "dim", "end")
+    Y = lambda s_: py + ph - (s_ / 0.0024) * ph
+    body = heading("MEASURE, DON'T TRUST ISO", "Noise rises with ISO, but varies per clip and per Log curve",
+                   f"{n_clips} Canon EOS R6 V clips, ISO 800 to 51200, Log domain. Dots: median. Bars: 10th to 90th percentile.")
+    for s_ in (0.0005, 0.001, 0.0015, 0.002):
+        body += f'<line x1="{px}" y1="{Y(s_):.0f}" x2="{px + pw}" y2="{Y(s_):.0f}" stroke="var(--line)" stroke-dasharray="3 6"/>' + t(px - 12, Y(s_) + 4, f"{s_:.4f}", 11, "dim", "end")
     body += t(px - 12, py - 14, "σ  (Log domain)", 11, "dim", "end")
-    # ±30% band
-    up = " ".join(f"{X(i):.0f},{Y(s * 1.3):.0f}" for i, s in pts)
-    dn = " ".join(f"{X(i):.0f},{Y(s * 0.7):.0f}" for i, s in reversed(pts))
-    body += f'<polygon points="{up} {dn}" fill="var(--accent)" opacity=".16"/>'
-    line = " ".join(f"{X(i):.0f},{Y(s):.0f}" for i, s in pts)
-    body += f'<polyline points="{line}" fill="none" stroke="var(--accent)" stroke-width="3"/>'
-    for i, s in pts:
-        body += f'<circle cx="{X(i):.0f}" cy="{Y(s):.0f}" r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2.5"/>'
+    series = (("canon-log2", "Canon Log 2", "var(--accent)", -9), ("canon-log3", "Canon Log 3", "var(--warn)", 9))
+    for key, label, color, dx in series:
+        rows = data[key]["buckets"]
+        line = " ".join(f"{X(r['iso_median']) + dx:.0f},{Y(r['p50']):.0f}" for r in rows)
+        body += f'<polyline points="{line}" fill="none" stroke="{color}" stroke-width="3"/>'
+        for r in rows:
+            x = X(r["iso_median"]) + dx
+            body += f'<line x1="{x:.0f}" y1="{Y(r["p10"]):.0f}" x2="{x:.0f}" y2="{Y(r["p90"]):.0f}" stroke="{color}" stroke-width="2" opacity=".55"/>'
+            body += f'<circle cx="{x:.0f}" cy="{Y(r["p50"]):.0f}" r="5" fill="var(--bg)" stroke="{color}" stroke-width="2.5"/>'
     for iso in (800, 1600, 3200, 6400, 12800, 25600, 51200):
         body += t(X(iso), py + ph + 26, iso, 12, "dim", "middle")
-    body += t(px + pw / 2, py + ph + 52, "ISO", 12, "dim", "middle")
-    # the two ISO 800 clips
-    body += f'<circle cx="{X(800):.0f}" cy="{Y(0.0005):.0f}" r="6" fill="var(--warn)"/><circle cx="{X(800):.0f}" cy="{Y(0.0011):.0f}" r="6" fill="var(--warn)"/>'
-    body += f'<line x1="{X(800):.0f}" y1="{Y(0.0005):.0f}" x2="{X(800):.0f}" y2="{Y(0.0011):.0f}" stroke="var(--warn)" stroke-width="1.5"/>'
-    body += t(X(800) + 16, Y(0.0011) - 10, "two clips, same ISO 800", 12, "warn")
-    body += t(X(800) + 16, Y(0.0011) + 6, "σ 0.0005 vs 0.0011", 12, "warn")
+    body += t(px + pw / 2, py + ph + 46, "ISO", 12, "dim", "middle")
+    for k, (key, label, color, _) in enumerate(series):
+        body += f'<circle cx="{px + 70 + k * 200}" cy="{py - 18}" r="5" fill="{color}"/>' + t(px + 82 + k * 200, py - 14, f"{label} ({data[key]['clips']} clips)", 12, "dim")
     # side facts
     fx = 1060
     facts = [("±30%", "treat any estimate as this accurate"), ("5 frames", "median of full frames per clip"),
@@ -237,9 +247,9 @@ def noise():
         yy = 170 + k * 80
         body += f'<rect x="{fx}" y="{yy}" width="492" height="66" rx="8" class="panel"/>'
         body += t(fx + 20, yy + 42, big, 28, "b acc") + t(fx + 190, yy + 40, small, 13, "dim")
-    body += t(48, 528, "Estimator: truncated-RMS of the Haar diagonal band (README, CHANGELOG 0.2.0). Spatial strength clamped to 4.0: at 4.5, ISO 51200 kept only 92% detail.", 12, "dim")
+    body += t(48, 544, "Estimator: truncated-RMS of the Haar diagonal band. Spatial strength clamped to 4.0: at 4.5, ISO 51200 kept only 92% detail.", 12, "dim")
     svg("noise-vs-iso.svg", W, H, "Noise versus ISO for Log footage: why quietframe measures each clip",
-        "Line chart of typical Log-domain noise sigma by ISO from 800 to 51200 with a plus or minus 30 percent band, and two ISO 800 clips measuring 0.0005 and 0.0011.",
+        f"Median Log-domain noise sigma by ISO bucket for Canon Log 2 and Canon Log 3 on {n_clips} Canon EOS R6 V clips, with 10th to 90th percentile bars. Log 2 rises from about 0.0008 to 0.0014; Log 3 from 0.0008 to 0.0011; at base ISO clips range from 0.0005 to 0.0012.",
         body)
 
 
