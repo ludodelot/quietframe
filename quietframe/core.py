@@ -18,12 +18,13 @@ TIERS = [
 ]
 PRESETS = {"light": 0.6, "normal": 1.0, "strong": 1.4}
 
-# Measured-noise anchors per Log profile: (sigma at low-noise -> spatial 1.5, sigma at moderate noise -> spatial 3.0).
+# Measured-noise anchors per Log profile: (sigma -> spatial 1.5, sigma -> spatial 3.0).
 # Noise in code values depends on the Log curve, so each profile has its own pair. Sigma is the Log-domain
-# estimate from measure.py. PROVISIONAL until the multi-clip calibration is finished (see CHANGELOG).
+# estimate from measure.py. Each pair is the median sigma of the clips shot at base ISO (<=1000) and of those at
+# high ISO (>=5500), from a Canon EOS R6 V survey (Log 2: 160 clips; Log 3: 196 clips; see README).
 ANCHORS = {
-    "canon-log2": (0.0008, 0.00145),   # Canon EOS R6 V, Canon Log 2 clips
-    "canon-log3": (0.0008, 0.00145),   # provisional copy, replaced by the survey of the Log 3 library
+    "canon-log2": (0.00076, 0.00140),
+    "canon-log3": (0.00082, 0.00106),
 }
 DEFAULT_PROFILE = "canon-log2"
 SPATIAL_LO, SPATIAL_HI = 1.5, 3.0

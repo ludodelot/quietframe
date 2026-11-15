@@ -1,6 +1,6 @@
 import unittest
 
-from quietframe.core import build_filter, plan_for_iso, plan_for_sigma
+from quietframe.core import ANCHORS, build_filter, plan_for_iso, plan_for_sigma
 from quietframe import measure
 
 
@@ -37,11 +37,12 @@ class CoreTests(unittest.TestCase):
 
 class SigmaTests(unittest.TestCase):
     def test_anchors(self):
-        self.assertEqual(plan_for_sigma(0.00145).params[0], 3.0)
-        self.assertEqual(plan_for_sigma(0.0008).params[0], 1.5)
+        lo, hi = ANCHORS["canon-log2"]
+        self.assertEqual(plan_for_sigma(hi, "normal", "canon-log2").params[0], 3.0)
+        self.assertEqual(plan_for_sigma(lo, "normal", "canon-log2").params[0], 1.5)
 
     def test_monotonic_and_clamped(self):
-        a, b = plan_for_sigma(0.001).params[0], plan_for_sigma(0.0015).params[0]
+        a, b = plan_for_sigma(0.001, "normal", "canon-log2").params[0], plan_for_sigma(0.0015, "normal", "canon-log2").params[0]
         self.assertLess(a, b)
         self.assertEqual(plan_for_sigma(1.0).params[0], 4.0)
         self.assertEqual(plan_for_sigma(1e-9).params[0], 1.0)
