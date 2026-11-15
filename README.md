@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.png" alt="quietframe logo: a pixel-art camera on a gimbal with a purple orbit" width="200">
+  <img src="assets/logo.svg" alt="quietframe logo: a pixel-art camera on a gimbal inside a purple orbit; film grain fades away and the camera settles" width="220">
 </p>
 
 <h1 align="center">quietframe</h1>
