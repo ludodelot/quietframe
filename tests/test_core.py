@@ -50,6 +50,10 @@ class SigmaTests(unittest.TestCase):
         self.assertFalse(plan_for_sigma(0.003).tested)
 
     @unittest.skipUnless(measure.available(), "numpy not installed")
+    def test_unreadable_file_returns_none(self):
+        self.assertIsNone(measure.noise_sigma("/nonexistent/x.mp4"))
+
+    @unittest.skipUnless(measure.available(), "numpy not installed")
     def test_estimator_recovers_gaussian_sigma(self):
         import numpy as np
         rng = np.random.default_rng(0)

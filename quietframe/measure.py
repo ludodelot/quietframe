@@ -45,7 +45,10 @@ def noise_sigma(path: str, samples: int = 5) -> float | None:
     """
     if np is None:
         return None
-    W, H, dur = _probe(path)
+    try:
+        W, H, dur = _probe(path)
+    except (ValueError, KeyError, IndexError):  # unreadable or missing file
+        return None
     W2, H2 = W // 2 * 2, H // 2 * 2
     vals = []
     for i in range(samples):
