@@ -67,7 +67,21 @@ python -m quietframe filter clip.mp4 --lut my.cube   # your LUT first, then the 
 python -m quietframe run clip.mp4 -o clean.mov --iso 6400 --preset strong
 ```
 
-Presets: `light`, `normal` (default), `strong`. `--stage before` denoises before the LUT instead. `--range full` (default) tags the source full range, correct for Canon Log from the R6 V. Use `--range auto` otherwise.
+Presets: `light`, `normal` (default), `strong`. `--stage before` denoises before the LUT instead. `--range auto` (default) tags the source full range only when a Canon Log profile is detected and otherwise leaves the file's own flags alone; `--range full` forces it.
+
+## Only have a video file?
+
+It works with just the clip, no sidecar and no LUT. What changes depends on what you have:
+
+| You have | What happens |
+|---|---|
+| A Canon R6 V clip with its `.CPF` | Full calibrated behaviour. |
+| The same clip without the `.CPF` | The noise is still measured, the profile is "unknown", Log 2 anchors are used and the result is flagged `[untested tier]`. Pass `--log-profile canon-log3` if you know it. |
+| A clip from another camera, or not in Log | The measurement works, but the calibration was made on one camera, so the strength is a rough guide only (`[untested tier]`). Try `--preset light` or `strong` and check a 100% crop. Or calibrate your own camera (below). |
+| No LUT | The denoise is applied to the frames as given. The strength is tuned for display-referred frames (after a LUT), so it will be gentler on a Log file. |
+| No numpy | An ISO table is used (needs `exiftool` to read the ISO), or a medium strength if the ISO is unknown. |
+
+Phone clips with a rotation flag and clips with no measurable noise (black or flat) are handled.
 
 ## How it works
 

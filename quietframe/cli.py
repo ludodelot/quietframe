@@ -7,7 +7,7 @@ import sys
 
 from . import __version__
 from . import measure, profile as profile_mod
-from .core import PRESETS, build_filter, plan_for_iso, plan_for_sigma, read_iso
+from .core import ANCHORS, PRESETS, build_filter, plan_for_iso, plan_for_sigma, read_iso
 
 
 def main(argv=None) -> int:
@@ -27,8 +27,9 @@ def main(argv=None) -> int:
         s.add_argument("--lut", help="optional .cube Log -> Rec.709 LUT, applied before the denoise (stage after) or after it (stage before)")
         s.add_argument("--stage", choices=["after", "before"], default="after",
                        help="denoise after the LUT (default, keeps more detail at equal noise) or before it")
-        s.add_argument("--range", choices=["full", "auto"], default="full",
-                       help="full = treat source as full range (Canon Log R6 V); auto = leave flags alone")
+        s.add_argument("--range", choices=["full", "auto"], default="auto",
+                       help="auto (default) = tag the source full range only when a Canon Log profile was detected, "
+                            "otherwise leave the file's flags alone; full = always tag full range")
         if name == "run":
             s.add_argument("-o", "--output", required=True)
             s.add_argument("--force", action="store_true", help="overwrite an existing output file")
@@ -66,7 +67,8 @@ def main(argv=None) -> int:
         iso = a.iso if a.iso is not None else read_iso(a.input)
         plan = plan_for_iso(iso, a.preset)
         note = f"ISO {iso}" if iso else "ISO unknown (mid-strength fallback)"
-    vf = build_filter(plan, a.lut, a.range == "full", a.stage)
+    full_range = a.range == "full" or (a.range == "auto" and prof in ANCHORS)
+    vf = build_filter(plan, a.lut, full_range, a.stage)
     if not a.lut:
         print("# no --lut: denoising the frames as given (strength is calibrated for display-referred frames, after the LUT)", file=sys.stderr)
     print(f"# {note} -> {plan.hqdn3d}" + ("" if plan.tested else "  [untested tier]"), file=sys.stderr)

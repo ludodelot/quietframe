@@ -53,9 +53,11 @@ def noise_sigma(path: str, samples: int = 5) -> float | None:
     vals = []
     for i in range(samples):
         t = dur * (i + 1) / (samples + 1)
-        raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", path, "-vf",
+        # -noautorotate: phone clips carry a rotation flag; the decoded size must match the stored width x height.
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-noautorotate", "-ss", f"{t:.3f}", "-i", path, "-vf",
                               f"setrange=full,crop={W2}:{H2},format=gray16le",
                               "-frames:v", "1", "-f", "rawvideo", "-"], capture_output=True).stdout
         if len(raw) == W2 * H2 * 2:
             vals.append(sigma_frame(np.frombuffer(raw, "<u2").reshape(H2, W2).astype(np.float64) / 65535))
-    return float(np.median(vals)) if vals else None
+    sigma = float(np.median(vals)) if vals else None
+    return sigma if sigma and sigma > 0 else None  # a flat or black clip has no measurable noise

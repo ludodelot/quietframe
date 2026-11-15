@@ -41,6 +41,29 @@ class EndToEnd(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertLess(measure.noise_sigma(out, samples=2), measure.noise_sigma(self.src, samples=2))
 
+    def test_rotated_phone_style_clip_is_still_measured(self):
+        rotated = str(Path(self.dir.name) / "rotated.mp4")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", self.src, "-c:v", "libx264", "-crf", "12", "-pix_fmt", "yuv420p",
+                        "-metadata:s:v", "rotate=90", rotated], check=True)
+        self.assertIsNotNone(measure.noise_sigma(rotated, samples=2))
+
+    def test_plain_video_keeps_its_range_flags_but_known_log_forces_full(self):
+        r = self.cli("filter", self.src, "--mode", "iso", "--iso", "800")
+        self.assertNotIn("setrange", r.stdout)           # unknown profile: flags left alone
+        r = self.cli("filter", self.src, "--mode", "iso", "--iso", "800", "--log-profile", "canon-log2")
+        self.assertTrue(r.stdout.startswith("setrange=full"))
+        r = self.cli("filter", self.src, "--mode", "iso", "--iso", "800", "--range", "full")
+        self.assertTrue(r.stdout.startswith("setrange=full"))
+
+    def test_flat_clip_without_noise_does_not_crash(self):
+        flat = str(Path(self.dir.name) / "flat.mkv")
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=gray:size=320x180:rate=24:duration=1",
+                        "-vf", "format=yuv422p10le", "-c:v", "ffv1", flat], check=True)
+        self.assertIsNone(measure.noise_sigma(flat, samples=2))
+        r = self.cli("filter", flat)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("hqdn3d", r.stdout)
+
     def test_never_overwrites_input_or_existing_output(self):
         r = self.cli("run", self.src, "-o", self.src)
         self.assertNotEqual(r.returncode, 0)

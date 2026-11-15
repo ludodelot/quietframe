@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+- Fix: noise measurement failed silently on clips with a rotation flag (phones), falling back to a medium strength. Frames are now read without auto-rotation.
+- Fix: a clip with no measurable noise (black or flat) no longer crashes; it falls back to the ISO table.
+- `--range` now defaults to `auto`: full range is forced only when a Canon Log profile is detected, otherwise the file's own range flags are left alone (a plain Rec.709 file is limited range).
+
 ## 1.0.0
 - **Default stage changed to after the LUT** (`--stage after`; `--stage before` keeps the old order). With the correct LUT for each Log curve, at equal residual noise denoising after the LUT kept the same or more detail on all three test clips (Canon Log 2 ISO 6400 and 51200, Canon Log 3 ISO 8299). Earlier "before the LUT" claims came from a test that used a Log 3 LUT on Log 2 footage and are withdrawn.
 - Anchors calibrated per Log profile on 356 Canon EOS R6 V clips (Log 2: 160, Log 3: 196); `assets/calibration_summary.json` has the aggregates.
