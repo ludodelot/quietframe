@@ -1,4 +1,8 @@
-# quietframe
+<p align="center">
+  <img src="assets/logo.png" alt="quietframe logo: a pixel-art camera on a gimbal with a purple orbit" width="200">
+</p>
+
+<h1 align="center">quietframe</h1>
 
 ISO-adaptive denoising for Log camera footage, applied **before** the Log → Rec.709 transform.
 

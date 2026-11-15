@@ -27,7 +27,20 @@ def main(argv=None) -> int:
                        help="full = treat source as full range (Canon Log R6 V); auto = leave flags alone")
         if name == "run":
             s.add_argument("-o", "--output", required=True)
+    c = sub.add_parser("calibrate", help="measure noise of many clips into a CSV (read-only)")
+    c.add_argument("inputs", nargs="+", help="clip files, or a text file with one path per line (prefix with @)")
+    c.add_argument("-o", "--output", required=True)
+    c.add_argument("--jobs", type=int, default=4)
     a = ap.parse_args(argv)
+    if a.cmd == "calibrate":
+        if not measure.available():
+            sys.exit("calibrate needs numpy (pip install numpy)")
+        from .calibrate import survey
+        paths = []
+        for item in a.inputs:
+            paths += [l.strip() for l in open(item[1:]) if l.strip()] if item.startswith("@") else [item]
+        print(f"surveyed {survey(paths, a.output, a.jobs, lambda m: print(m, file=sys.stderr, flush=True))} clips -> {a.output}")
+        return 0
 
     sigma = None
     if a.iso is None and a.mode in ("auto", "measure"):
