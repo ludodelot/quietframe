@@ -1,4 +1,4 @@
-"""Batch noise survey: measure many clips and write a CSV (path, model, iso, sigma, seconds). Read-only on the inputs.
+"""Batch noise survey: measure many clips and write a CSV (path, model, iso, profile, sigma, seconds). Read-only on the inputs.
 
 Use it to calibrate quietframe for your own camera: run it on a spread of clips (different ISO, scenes, dates),
 then compare sigma against ISO. Needs numpy, ffmpeg, and exiftool (for model/ISO).
@@ -12,7 +12,7 @@ import subprocess
 import time
 from concurrent.futures import ProcessPoolExecutor
 
-from . import measure
+from . import measure, profile
 
 
 def _meta(path: str):
@@ -34,13 +34,14 @@ def survey_one(path: str) -> dict:
     except Exception as error:  # one bad file must not stop a long survey
         sigma = None
         model = f"{model} (error: {type(error).__name__})"
-    return {"path": path, "model": model, "iso": iso, "sigma": sigma, "seconds": round(time.time() - t, 1)}
+    return {"path": path, "model": model, "iso": iso, "profile": profile.detect(path), "sigma": sigma,
+            "seconds": round(time.time() - t, 1)}
 
 
 def survey(paths: list[str], out_csv: str, jobs: int = 4, progress=print) -> int:
     done = 0
     with open(out_csv, "w", newline="") as f, ProcessPoolExecutor(max_workers=jobs) as pool:
-        w = csv.DictWriter(f, fieldnames=["path", "model", "iso", "sigma", "seconds"])
+        w = csv.DictWriter(f, fieldnames=["path", "model", "iso", "profile", "sigma", "seconds"])
         w.writeheader()
         for row in pool.map(survey_one, paths):
             w.writerow(row)

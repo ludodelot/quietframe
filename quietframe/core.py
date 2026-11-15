@@ -18,10 +18,15 @@ TIERS = [
 ]
 PRESETS = {"light": 0.6, "normal": 1.0, "strong": 1.4}
 
-# Measured-noise anchors (Log-domain sigma, see measure.py), from Canon EOS R6 V / Canon Log 3 clips:
-# ISO <=2000 ~0.0008 -> hqdn3d spatial 1.5; ISO 6400 ~0.00145 -> 3.0 (the validated setting). Linear between, clamped.
-SIGMA_LO, SPATIAL_LO = 0.0008, 1.5
-SIGMA_HI, SPATIAL_HI = 0.00145, 3.0
+# Measured-noise anchors per Log profile: (sigma at low-noise -> spatial 1.5, sigma at moderate noise -> spatial 3.0).
+# Noise in code values depends on the Log curve, so each profile has its own pair. Sigma is the Log-domain
+# estimate from measure.py. PROVISIONAL until the multi-clip calibration is finished (see CHANGELOG).
+ANCHORS = {
+    "canon-log2": (0.0008, 0.00145),   # Edinburgh / Madrid airport clips (Canon EOS R6 V)
+    "canon-log3": (0.0008, 0.00145),   # provisional copy, replaced by the survey of the Log 3 library
+}
+DEFAULT_PROFILE = "canon-log2"
+SPATIAL_LO, SPATIAL_HI = 1.5, 3.0
 SPATIAL_MIN, SPATIAL_MAX = 1.0, 4.0
 
 
@@ -51,17 +56,21 @@ def plan_for_iso(iso: int | None, preset: str = "normal") -> Plan:
     return Plan(iso=iso, params=p, tested=row[5] and preset == "normal")
 
 
-def plan_for_sigma(sigma: float, preset: str = "normal") -> Plan:
-    """Strength from a measured noise sigma (preferred over ISO: noise varies a lot per clip at equal ISO)."""
+def plan_for_sigma(sigma: float, preset: str = "normal", profile: str | None = None) -> Plan:
+    """Strength from a measured noise sigma (preferred over ISO: noise varies a lot per clip at equal ISO).
+
+    An unknown or missing profile uses the Log 2 anchors but is flagged untested.
+    """
     if preset not in PRESETS:
         raise ValueError(f"preset must be one of {sorted(PRESETS)}")
     if not sigma > 0:
         raise ValueError("sigma must be positive")
-    t = (sigma - SIGMA_LO) / (SIGMA_HI - SIGMA_LO)
-    sp = SPATIAL_LO + t * (SPATIAL_HI - SPATIAL_LO)
+    known = profile in ANCHORS
+    lo, hi = ANCHORS[profile if known else DEFAULT_PROFILE]
+    sp = SPATIAL_LO + (sigma - lo) / (hi - lo) * (SPATIAL_HI - SPATIAL_LO)
     sp = min(max(sp, SPATIAL_MIN), SPATIAL_MAX) * PRESETS[preset]
     p = (round(sp, 2), round(sp, 2), round(sp * 2, 2), round(sp * 2, 2))
-    return Plan(iso=None, params=p, tested=preset == "normal" and sigma <= SIGMA_HI * 1.15)
+    return Plan(iso=None, params=p, tested=known and preset == "normal" and sigma <= hi * 1.15)
 
 
 def build_filter(plan: Plan, lut: str | None = None, full_range: bool = True) -> str:

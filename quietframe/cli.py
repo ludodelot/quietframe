@@ -6,7 +6,7 @@ import subprocess
 import sys
 
 from . import __version__
-from . import measure
+from . import measure, profile as profile_mod
 from .core import PRESETS, build_filter, plan_for_iso, plan_for_sigma, read_iso
 
 
@@ -22,11 +22,14 @@ def main(argv=None) -> int:
                        help="measure = noise measured from the clip (needs numpy); iso = ISO table; "
                             "auto = measure if numpy is available, else ISO")
         s.add_argument("--preset", choices=sorted(PRESETS), default="normal")
+        s.add_argument("--log-profile", choices=["auto", *sorted(__import__("quietframe.core", fromlist=["ANCHORS"]).ANCHORS)],
+                       default="auto", help="Log curve of the clip; auto reads the .CPF next to it (never guessed)")
         s.add_argument("--lut", help="optional .cube applied right after the denoise")
         s.add_argument("--range", choices=["full", "auto"], default="full",
                        help="full = treat source as full range (Canon Log R6 V); auto = leave flags alone")
         if name == "run":
             s.add_argument("-o", "--output", required=True)
+            s.add_argument("--force", action="store_true", help="overwrite an existing output file")
     c = sub.add_parser("calibrate", help="measure noise of many clips into a CSV (read-only)")
     c.add_argument("inputs", nargs="+", help="clip files, or a text file with one path per line (prefix with @)")
     c.add_argument("-o", "--output", required=True)
@@ -42,14 +45,21 @@ def main(argv=None) -> int:
         print(f"surveyed {survey(paths, a.output, a.jobs, lambda m: print(m, file=sys.stderr, flush=True))} clips -> {a.output}")
         return 0
 
+    prof = profile_mod.detect(a.input) if a.log_profile == "auto" else a.log_profile
+    if a.cmd == "run":
+        import os
+        if os.path.exists(a.output) and os.path.samefile(a.output, a.input):
+            sys.exit("refusing to overwrite the input file; originals are never modified")
+        if os.path.exists(a.output) and not a.force:
+            sys.exit(f"{a.output} exists; pass --force to overwrite")
     sigma = None
     if a.iso is None and a.mode in ("auto", "measure"):
         if a.mode == "measure" and not measure.available():
             sys.exit("--mode measure needs numpy (pip install numpy)")
         sigma = measure.noise_sigma(a.input)
     if sigma is not None:
-        plan = plan_for_sigma(sigma, a.preset)
-        note = f"measured noise sigma={sigma:.5f}"
+        plan = plan_for_sigma(sigma, a.preset, prof)
+        note = f"measured noise sigma={sigma:.5f}, profile={prof or 'unknown'}"
     else:
         iso = a.iso if a.iso is not None else read_iso(a.input)
         plan = plan_for_iso(iso, a.preset)
