@@ -24,6 +24,8 @@ two ISO 800 clips measured 0.0005 and 0.0011. Typical sigma: about 0.0008 up to 
 0.002 at ISO 51200. Per-frame spread is about 20% and per-region about 25%, so the estimator uses 5 full frames
 and takes the median. Treat the estimate as ±30%.
 
+Strength is clamped to a spatial value of 4.0 (checked on 8 further clips: at 4.5 an ISO 51200 clip kept only 92% of detail).
+
 Validated: ISO 6400 at `hqdn3d=3:3:6:6`. At ISO 51200 the automatic setting (about `3.9:3.9:7.8:7.8`) looks cleaner with
 no ghosting on a moving chain in one clip, but it is only checked by eye and is flagged `[untested tier]`.
 Fast pans and subjects are not validated yet.

@@ -43,7 +43,7 @@ class SigmaTests(unittest.TestCase):
     def test_monotonic_and_clamped(self):
         a, b = plan_for_sigma(0.001).params[0], plan_for_sigma(0.0015).params[0]
         self.assertLess(a, b)
-        self.assertEqual(plan_for_sigma(1.0).params[0], 4.5)
+        self.assertEqual(plan_for_sigma(1.0).params[0], 4.0)
         self.assertEqual(plan_for_sigma(1e-9).params[0], 1.0)
 
     def test_high_sigma_marked_untested(self):

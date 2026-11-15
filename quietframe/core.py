@@ -22,7 +22,7 @@ PRESETS = {"light": 0.6, "normal": 1.0, "strong": 1.4}
 # ISO <=2000 ~0.0008 -> hqdn3d spatial 1.5; ISO 6400 ~0.00145 -> 3.0 (the validated setting). Linear between, clamped.
 SIGMA_LO, SPATIAL_LO = 0.0008, 1.5
 SIGMA_HI, SPATIAL_HI = 0.00145, 3.0
-SPATIAL_MIN, SPATIAL_MAX = 1.0, 4.5
+SPATIAL_MIN, SPATIAL_MAX = 1.0, 4.0
 
 
 @dataclass(frozen=True)
