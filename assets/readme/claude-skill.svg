@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 520" width="1600" height="520" role="img" aria-labelledby="t d">
+<title id="t">quietframe as a Claude Code skill: six rules for safe denoising</title>
+<desc id="d">Six rules the skill enforces: never modify originals, read the Log profile from the CPF sidecar, get the filter chain, test before a batch, report untested tiers, and calibrate other cameras.</desc>
+<style>
+:root{--bg:#0F0B1A;--panel:#17122A;--line:#3A3258;--fg:#FFFFFF;--dim:#A39EBB;--accent:#B880F2;--ok:#7BE0A4;--warn:#F2C46B;--grain:#8A84A0}
+@media (prefers-color-scheme: light){:root{--bg:#FBF9FF;--panel:#F1ECFB;--line:#CFC5EA;--fg:#15111F;--dim:#5E5878;--accent:#7A3FCB;--ok:#1E8A55;--warn:#A56A00;--grain:#6F6885}}
+text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;fill:var(--fg)}
+.dim{fill:var(--dim)}.acc{fill:var(--accent)}.ok{fill:var(--ok)}.warn{fill:var(--warn)}
+.b{font-weight:700}
+.panel{fill:var(--panel);stroke:var(--line)}
+.hot{fill:var(--panel);stroke:var(--accent);stroke-width:1.6}
+.flow{stroke:var(--accent);stroke-width:2;fill:none;stroke-dasharray:6 8;animation:flow 1.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-28}}
+.fade{animation:fade 7s ease-in-out infinite}
+@keyframes fade{0%,8%{opacity:.75}38%{opacity:.1}52%,92%{opacity:0}100%{opacity:.75}}
+.sweep{animation:sweep 7s ease-in-out infinite}
+@keyframes sweep{0%,6%{transform:translateX(0)}50%,100%{transform:translateX(var(--w))}}
+.pulse{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important}.fade{opacity:0}}
+</style>
+<defs>
+<marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>
+<pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1" fill="var(--grain)" opacity=".16"/></pattern>
+</defs>
+<rect width="1600" height="520" rx="14" fill="var(--bg)"/>
+<rect width="1600" height="520" rx="14" fill="url(#dots)"/>
+<text x="48" y="58" font-size="13" text-anchor="start" class="acc" >CLAUDE CODE SKILL</text><text x="48" y="98" font-size="32" text-anchor="start" class="b" >Ask Claude to denoise your Log footage</text><text x="48" y="126" font-size="14" text-anchor="start" class="dim" >Copy skill/SKILL.md into your skills folder. Claude follows these rules every time.</text><rect x="48" y="160" width="744" height="76" rx="8" class="panel"/><text x="70" y="208" font-size="34" text-anchor="start" class="b dim" opacity=".9">1</text><text x="110" y="192" font-size="17" text-anchor="start" class="b" >Originals are never modified</text><text x="110" y="216" font-size="12" text-anchor="start" class="dim" >reads the source, writes a new file, refuses to overwrite its input</text><rect x="808" y="160" width="744" height="76" rx="8" class="panel"/><text x="830" y="208" font-size="34" text-anchor="start" class="b dim" opacity=".9">2</text><text x="870" y="192" font-size="17" text-anchor="start" class="b" >Profile from the .CPF sidecar</text><text x="870" y="216" font-size="12" text-anchor="start" class="dim" >same camera shoots Canon Log 2 one trip and Log 3 the next, never guessed</text><rect x="48" y="252" width="744" height="76" rx="8" class="panel"/><text x="70" y="300" font-size="34" text-anchor="start" class="b dim" opacity=".9">3</text><text x="110" y="284" font-size="17" text-anchor="start" class="b" >Get the filter chain</text><text x="110" y="308" font-size="12" text-anchor="start" class="dim" >python -m quietframe filter &lt;clip&gt; [--lut file.cube]</text><rect x="808" y="252" width="744" height="76" rx="8" class="panel"/><text x="830" y="300" font-size="34" text-anchor="start" class="b dim" opacity=".9">4</text><text x="870" y="284" font-size="17" text-anchor="start" class="b" >Test before a batch</text><text x="870" y="308" font-size="12" text-anchor="start" class="dim" >render a short test, compare a 100% crop to the undenoised clip</text><rect x="48" y="344" width="744" height="76" rx="8" class="hot"/><text x="70" y="392" font-size="34" text-anchor="start" class="b acc" opacity=".9">5</text><text x="110" y="376" font-size="17" text-anchor="start" class="b" >Report [untested tier]</text><text x="110" y="400" font-size="12" text-anchor="start" class="dim" >an ISO, noise level or profile that was not validated is never called proven</text><rect x="808" y="344" width="744" height="76" rx="8" class="panel"/><text x="830" y="392" font-size="34" text-anchor="start" class="b dim" opacity=".9">6</text><text x="870" y="376" font-size="17" text-anchor="start" class="b" >Calibrate another camera</text><text x="870" y="400" font-size="12" text-anchor="start" class="dim" >python -m quietframe calibrate @clips.txt -o noise.csv  (never publish the path column)</text><rect x="48" y="450" width="1504" height="44" rx="8" class="panel"/><text x="72" y="478" font-size="15" text-anchor="start" class="acc" >“My clips look grainy, denoise them before I grade.”</text><text x="1528" y="478" font-size="13" text-anchor="end" class="dim" >triggers the skill</text>
+<rect x=".5" y=".5" width="1599" height="519" rx="14" fill="none" stroke="var(--line)"/>
+</svg>
