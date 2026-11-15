@@ -1,6 +1,7 @@
 import unittest
 
-from quietframe.core import build_filter, plan_for_iso
+from quietframe.core import build_filter, plan_for_iso, plan_for_sigma
+from quietframe import measure
 
 
 class CoreTests(unittest.TestCase):
@@ -32,6 +33,28 @@ class CoreTests(unittest.TestCase):
     def test_unsafe_lut_path_rejected(self):
         with self.assertRaises(ValueError):
             build_filter(plan_for_iso(800), lut="a,b.cube")
+
+
+class SigmaTests(unittest.TestCase):
+    def test_anchors(self):
+        self.assertEqual(plan_for_sigma(0.00145).params[0], 3.0)
+        self.assertEqual(plan_for_sigma(0.0008).params[0], 1.5)
+
+    def test_monotonic_and_clamped(self):
+        a, b = plan_for_sigma(0.001).params[0], plan_for_sigma(0.0015).params[0]
+        self.assertLess(a, b)
+        self.assertEqual(plan_for_sigma(1.0).params[0], 4.5)
+        self.assertEqual(plan_for_sigma(1e-9).params[0], 1.0)
+
+    def test_high_sigma_marked_untested(self):
+        self.assertFalse(plan_for_sigma(0.003).tested)
+
+    @unittest.skipUnless(measure.available(), "numpy not installed")
+    def test_estimator_recovers_gaussian_sigma(self):
+        import numpy as np
+        rng = np.random.default_rng(0)
+        g = rng.normal(0.5, 0.002, (512, 512))
+        self.assertAlmostEqual(measure.sigma_frame(g), 0.002, delta=0.0002)
 
 
 if __name__ == "__main__":

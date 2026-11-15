@@ -18,6 +18,12 @@ TIERS = [
 ]
 PRESETS = {"light": 0.6, "normal": 1.0, "strong": 1.4}
 
+# Measured-noise anchors (Log-domain sigma, see measure.py), from Canon EOS R6 V / Canon Log 3 clips:
+# ISO <=2000 ~0.0008 -> hqdn3d spatial 1.5; ISO 6400 ~0.00145 -> 3.0 (the validated setting). Linear between, clamped.
+SIGMA_LO, SPATIAL_LO = 0.0008, 1.5
+SIGMA_HI, SPATIAL_HI = 0.00145, 3.0
+SPATIAL_MIN, SPATIAL_MAX = 1.0, 4.5
+
 
 @dataclass(frozen=True)
 class Plan:
@@ -43,6 +49,19 @@ def plan_for_iso(iso: int | None, preset: str = "normal") -> Plan:
         row = next(t for t in TIERS if iso <= t[0])
     p = tuple(round(v * k, 2) for v in row[1:5])
     return Plan(iso=iso, params=p, tested=row[5] and preset == "normal")
+
+
+def plan_for_sigma(sigma: float, preset: str = "normal") -> Plan:
+    """Strength from a measured noise sigma (preferred over ISO: noise varies a lot per clip at equal ISO)."""
+    if preset not in PRESETS:
+        raise ValueError(f"preset must be one of {sorted(PRESETS)}")
+    if not sigma > 0:
+        raise ValueError("sigma must be positive")
+    t = (sigma - SIGMA_LO) / (SIGMA_HI - SIGMA_LO)
+    sp = SPATIAL_LO + t * (SPATIAL_HI - SPATIAL_LO)
+    sp = min(max(sp, SPATIAL_MIN), SPATIAL_MAX) * PRESETS[preset]
+    p = (round(sp, 2), round(sp, 2), round(sp * 2, 2), round(sp * 2, 2))
+    return Plan(iso=None, params=p, tested=preset == "normal" and sigma <= SIGMA_HI * 1.15)
 
 
 def build_filter(plan: Plan, lut: str | None = None, full_range: bool = True) -> str:
